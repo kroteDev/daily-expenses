@@ -49,7 +49,7 @@ Full-stack personal finance app rebuilt from a legacy Rails 4 monolith into a mo
 |---|---|---|---|
 | web | `WEB_PORT` (5001) | 3000 | `npm run dev` |
 | api | `API_PORT` (5000) | 3000 | `rails s -b 0.0.0.0` |
-| postgres | `DATABASE_PORT` (5432) | 5432 | `postgres:17` |
+| postgres | `DATABASE_PORT` (5434) | 5432 | `postgres:17` |
 
 ## First-session checklist
 
@@ -85,6 +85,72 @@ docker compose exec api bundle exec rails db:prepare
 - **Category:** user-owned, default "Sem categoria" on signup
 - **Expense:** user-owned, belongs to category, `price_cents`, `date`, `import_hash`
 - **Incoming:** user-owned, `amount_cents`, `date`, `origin`
+
+## Current status (Phase 1 complete)
+
+- ✅ Rails API bootstrapped with Devise + JWT auth
+- ✅ Next.js 16 web app with TypeScript + Tailwind
+- ✅ Docker Compose for local dev
+- ✅ Models: User, Category, Expense, Incoming
+- ✅ CRUD endpoints under `/api/v1` for categories, expenses, incomings
+- ✅ Dashboard endpoint with date filters
+- ✅ CSV import endpoint with deduplication and skip rules
+- ✅ Prisma schema introspected from Rails DB
+- ✅ Basic auth pages (signin/signup) and dashboard page
+- ✅ Nginx config example for deploy
+- ✅ Initial tests for User model and web auth mappers/usecases
+
+## Next steps
+
+1. Web CRUD pages for expenses, incomings, and categories
+2. CSV import page with upload + result summary
+3. Charts on dashboard (by category and by date)
+4. More API/controller tests
+5. Deploy to DigitalOcean with the provided Nginx config
+
+## Useful commands
+
+```bash
+# Start everything
+docker compose up -d --build
+
+# Prepare database
+docker compose exec api bundle exec rails db:prepare
+
+# Reset dev database (destroys data)
+docker compose exec api bundle exec rails db:drop db:create db:migrate
+
+# Rails console / routes
+docker compose exec api rails console
+docker compose exec api rails routes
+
+# Tests
+docker compose exec api bundle exec rails test
+docker compose exec web npm run test:run
+
+# Prisma introspection
+docker compose exec web npm run db:pull
+```
+
+## Test data
+
+The development database currently contains a test user created during verification:
+
+- **Email:** `test@example.com`
+- **Password:** `password123`
+
+You can log in with this user at http://localhost:5001/signin, or reset the DB with `rails db:drop db:create db:migrate` and start fresh.
+
+## Skills useful for next steps
+
+- `rails-smart-generator` — for Rails scaffolding, models, controllers, migrations
+- `rails-devise-jwt-generator` — if auth needs changes or new Devise modules
+- `cvf-generate-usecase` — for creating clean-architecture use cases on the web
+- `cvf-generate-server-action` — for Next.js Server Actions that call the Rails API
+- `cvf-generate-form-action` — for form submission handling in Next.js
+- `cvf-domain-to-repository-generator` — for adding new repositories/interfaces on the web
+- `cvf-prisma-dto-generator` — for DTOs based on Prisma models
+- `cvf-admin-simplepage-manager` — if adding admin/simple pages under `/app`
 
 ## Deployment
 
