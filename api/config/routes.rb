@@ -9,6 +9,15 @@ Rails.application.routes.draw do
         sessions: "api/v1/users/sessions",
         registrations: "api/v1/users/registrations"
       }
+
+      resources :categories
+      resources :expenses do
+        collection do
+          post :import_csv
+        end
+      end
+      resources :incomings
+      get "dashboard", to: "dashboards#index"
     end
   end
 
