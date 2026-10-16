@@ -14,6 +14,8 @@ web/node_modules
 web/.next
 web/out
 api/tmp/cache
+api/tmp/pids/*.pid
+api/tmp/restart.txt
 api/log/*.log
 
 # OS / editor
