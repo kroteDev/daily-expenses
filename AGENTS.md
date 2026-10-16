@@ -59,6 +59,9 @@ docker compose up -d --build
 docker compose exec api bundle exec rails db:prepare
 ```
 
+> `DATABASE_PORT` is the host-mapped port; `DATABASE_INTERNAL_PORT` is the
+> port the API/web containers use inside the Docker network (usually 5432).
+
 ## Auth
 
 - `POST /api/v1/signup` → 200 + `Authorization: Bearer <jwt>` header
