@@ -14,6 +14,7 @@ import {
   getTokenStore,
 } from "@/infrastructure/api/client";
 import {
+  restoreSession,
   signInAndStore,
   signOutAndClear,
   signUpAndStore,
@@ -43,14 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const token = tokenStore.getToken();
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-
-    // TODO: validate token by fetching current user
-    setIsLoading(false);
+    restoreSession(authRepository, tokenStore)
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setIsLoading(false));
   }, []);
 
   const signIn = async (email: string, password: string) => {

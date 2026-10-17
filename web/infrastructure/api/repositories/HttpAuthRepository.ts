@@ -1,5 +1,6 @@
 import type { ApiRequestFn } from "@/infrastructure/api/httpClient";
 import { extractBearerToken } from "@/infrastructure/api/httpClient";
+import type { User } from "@/domain/entities/User";
 import type { RawUserDto } from "@/domain/api/RawUserDto";
 import type {
   AuthSession,
@@ -50,5 +51,14 @@ export class HttpAuthRepository implements IAuthRepository {
       path: "/api/v1/signout",
       token,
     });
+  }
+
+  async getProfile(token: string): Promise<User> {
+    const raw = await this.request<RawUserDto>({
+      method: "GET",
+      path: "/api/v1/profile",
+      token,
+    });
+    return rawToUser(raw);
   }
 }

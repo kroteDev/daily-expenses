@@ -19,7 +19,7 @@ export function setTokenStore(store: TokenStore): void {
   tokenStore = store;
 }
 
-function currentToken(): string | null {
+export function currentToken(): string | null {
   return getTokenStore().getToken();
 }
 

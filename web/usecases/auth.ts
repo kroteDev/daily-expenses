@@ -5,6 +5,7 @@ import type {
   SignUpInput,
 } from "@/domain/repositories/IAuthRepository";
 import type { TokenStore } from "@/infrastructure/auth/tokenStore";
+import { ApiError } from "@/infrastructure/api/httpClient";
 
 export async function signUpAndStore(
   repo: IAuthRepository,
@@ -32,5 +33,20 @@ export async function signOutAndClear(repo: IAuthRepository, store: TokenStore):
     if (token) await repo.signOut(token);
   } finally {
     store.clearToken();
+  }
+}
+
+export async function restoreSession(repo: IAuthRepository, store: TokenStore): Promise<User | null> {
+  const token = store.getToken();
+  if (!token) return null;
+
+  try {
+    return await repo.getProfile(token);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      store.clearToken();
+      return null;
+    }
+    throw error;
   }
 }

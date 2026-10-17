@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
-import { getBrowserClient } from "@/infrastructure/api/client";
+import { currentToken, getBrowserClient } from "@/infrastructure/api/client";
 
 interface DashboardData {
   filter: string;
@@ -35,6 +35,7 @@ export default function DashboardPage() {
         const result = await client<DashboardData>({
           method: "GET",
           path: "/api/v1/dashboard",
+          token: currentToken() ?? undefined,
         });
         setData(result);
       } catch (err) {

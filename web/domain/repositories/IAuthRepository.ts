@@ -21,4 +21,5 @@ export interface IAuthRepository {
   signUp(input: SignUpInput): Promise<AuthSession>;
   signIn(input: SignInInput): Promise<AuthSession>;
   signOut(token: string): Promise<void>;
+  getProfile(token: string): Promise<User>;
 }
