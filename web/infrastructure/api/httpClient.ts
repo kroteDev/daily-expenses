@@ -30,6 +30,13 @@ export function extractBearerToken(headerValue: string | null): string | null {
   return token === "" ? null : token;
 }
 
+export function buildQuery(params: Record<string, string | undefined>): string {
+  const entries = Object.entries(params).filter(
+    (entry): entry is [string, string] => entry[1] !== undefined,
+  );
+  return entries.length ? `?${new URLSearchParams(entries).toString()}` : "";
+}
+
 export function createApiClient({ baseUrl }: { baseUrl: string }): ApiRequestFn {
   return async function apiRequest<T>({ method, path, token, body, onResponse }: ApiRequestOptions) {
     const headers: Record<string, string> = {

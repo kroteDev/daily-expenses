@@ -7,6 +7,12 @@ import type {
 import type { TokenStore } from "@/infrastructure/auth/tokenStore";
 import { ApiError } from "@/infrastructure/api/httpClient";
 
+export function requireToken(store: TokenStore): string {
+  const token = store.getToken();
+  if (!token) throw new Error("Not authenticated");
+  return token;
+}
+
 export async function signUpAndStore(
   repo: IAuthRepository,
   store: TokenStore,
