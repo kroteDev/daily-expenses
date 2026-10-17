@@ -63,3 +63,6 @@ com Nginx para `expenses.krotedev.com.br` e `api.expenses.krotedev.com.br`.
 - `api/` — Rails 8.1 API-only (auth, CRUD, importação CSV)
 - `web/` — Next.js 16 frontend
 - `nginx/` — configuração de exemplo para deploy
+
+Old Session
+opencode -s ses_eb9d2fd47ffezB21OexBQ3GHNM

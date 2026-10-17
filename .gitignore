@@ -31,3 +31,5 @@ web/coverage
 
 # Legacy reference files (kept locally, not part of the new app)
 references/
+# Agent
+.opencode/
