@@ -18,6 +18,7 @@ Rails.application.routes.draw do
       end
       resources :incomings
       get "dashboard", to: "dashboards#index"
+      get "profile", to: "profiles#show"
     end
   end
 
