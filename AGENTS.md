@@ -86,27 +86,28 @@ docker compose exec api bundle exec rails db:prepare
 - **Expense:** user-owned, belongs to category, `price_cents`, `date`, `import_hash`
 - **Incoming:** user-owned, `amount_cents`, `date`, `origin`
 
-## Current status (Phase 1 complete)
+## Current status (Phase 1 complete, web CRUD done)
 
 - ✅ Rails API bootstrapped with Devise + JWT auth
 - ✅ Next.js 16 web app with TypeScript + Tailwind
 - ✅ Docker Compose for local dev
 - ✅ Models: User, Category, Expense, Incoming
 - ✅ CRUD endpoints under `/api/v1` for categories, expenses, incomings
+- ✅ Profile endpoint `GET /api/v1/profile` used to restore the session on reload
 - ✅ Dashboard endpoint with date filters
 - ✅ CSV import endpoint with deduplication and skip rules
 - ✅ Prisma schema introspected from Rails DB
 - ✅ Basic auth pages (signin/signup) and dashboard page
+- ✅ Web CRUD pages for categories, expenses and incomings (`web/app/(app)/`), with period filters and a shared auth gate/nav
 - ✅ Nginx config example for deploy
-- ✅ Initial tests for User model and web auth mappers/usecases
+- ✅ Tests for User model, profile controller, web mappers, money/date helpers and usecases
 
 ## Next steps
 
-1. Web CRUD pages for expenses, incomings, and categories
-2. CSV import page with upload + result summary
-3. Charts on dashboard (by category and by date)
-4. More API/controller tests
-5. Deploy to DigitalOcean with the provided Nginx config
+1. CSV import page with upload + result summary
+2. Charts on dashboard (by category and by date)
+3. More API/controller tests (categories, expenses, incomings)
+4. Deploy to DigitalOcean with the provided Nginx config
 
 ## Useful commands
 
