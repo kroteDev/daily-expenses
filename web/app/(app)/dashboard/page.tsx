@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { currentToken, getBrowserClient } from "@/infrastructure/api/client";
 
@@ -16,19 +15,12 @@ interface DashboardData {
 }
 
 export default function DashboardPage() {
-  const { user, isLoading: isAuthLoading, signOut } = useAuth();
-  const router = useRouter();
+  const { signOut } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isAuthLoading) return;
-    if (!user) {
-      router.push("/signin");
-      return;
-    }
-
     const fetchDashboard = async () => {
       try {
         const client = getBrowserClient();
@@ -46,9 +38,9 @@ export default function DashboardPage() {
     };
 
     fetchDashboard();
-  }, [user, isAuthLoading, router]);
+  }, []);
 
-  if (isAuthLoading || isLoading) {
+  if (isLoading) {
     return (
       <main className="flex min-h-screen items-center justify-center">
         <p>Carregando...</p>
@@ -77,19 +69,11 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Dashboard</h1>
-            <p className="text-zinc-600">
-              {data.start_date} até {data.end_date}
-            </p>
-          </div>
-          <button
-            onClick={() => signOut()}
-            className="rounded-full border border-zinc-900 px-4 py-2 hover:bg-zinc-100"
-          >
-            Sair
-          </button>
+        <div>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-zinc-600">
+            {data.start_date} até {data.end_date}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
