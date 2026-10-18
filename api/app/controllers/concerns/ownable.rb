@@ -15,7 +15,10 @@ module Ownable
   included do
     include RackSessionsFix
     before_action :authenticate_user!
-    before_action :set_owned_resource, only: %i[show update destroy]
+    # Condition instead of `only:`: Rails 7.1+ raises for callbacks whose
+    # `only:` lists actions the controller doesn't implement, which broke
+    # controllers without member actions (e.g. dashboards#index).
+    before_action :set_owned_resource, if: -> { action_name.in?(%w[show update destroy]) }
   end
 
   private
