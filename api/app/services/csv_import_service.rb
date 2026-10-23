@@ -90,16 +90,31 @@ class CsvImportService
   end
 
   def parse_amount(value)
-    return 0 if value.blank?
+    digits = value.to_s.gsub(/[^0-9,.\-]/, "")
+    return 0 unless digits.match?(/\d/)
 
-    sanitized = value.strip
-                       .gsub(".", "")
-                       .gsub(",", ".")
-                       .gsub(/[^0-9.\-]/, "")
+    negative = digits.start_with?("-")
+    digits = digits.delete("-")
 
-    (BigDecimal(sanitized) * 100).to_i
-  rescue ArgumentError
-    0
+    decimal = decimal_separator_for(digits)
+    integer_part, fraction_part = decimal ? digits.rpartition(decimal).values_at(0, 2) : [digits, nil]
+    amount = BigDecimal("#{integer_part.delete('.,').presence || 0}.#{fraction_part.presence || 0}")
+    cents = (amount * 100).round.to_i
+
+    negative ? -cents : cents
+  end
+
+  def decimal_separator_for(digits)
+    last_dot = digits.rindex(".")
+    last_comma = digits.rindex(",")
+
+    if last_dot && last_comma
+      last_dot > last_comma ? "." : ","
+    elsif last_comma
+      digits.count(",") == 1 ? "," : nil
+    elsif last_dot
+      digits.count(".") == 1 && digits[(last_dot + 1)..].length.between?(1, 2) ? "." : nil
+    end
   end
 
   def parse_date(value)
