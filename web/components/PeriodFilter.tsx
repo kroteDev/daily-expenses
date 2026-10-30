@@ -13,12 +13,13 @@ export const PERIOD_OPTIONS: { value: Period | undefined; label: string }[] = [
 interface PeriodFilterProps {
   value: Period | undefined;
   onChange: (value: Period | undefined) => void;
+  options?: { value: Period | undefined; label: string }[];
 }
 
-export function PeriodFilter({ value, onChange }: PeriodFilterProps) {
+export function PeriodFilter({ value, onChange, options = PERIOD_OPTIONS }: PeriodFilterProps) {
   return (
     <div className="flex gap-2">
-      {PERIOD_OPTIONS.map((option) => {
+      {options.map((option) => {
         const isActive = option.value === value;
         return (
           <button
