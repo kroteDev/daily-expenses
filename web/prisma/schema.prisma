@@ -1,10 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model ar_internal_metadata {
@@ -39,8 +39,10 @@ model expenses {
   categories  categories @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_06966d0da0")
   users       users      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_c3ee69df61")
 
+  @@unique([user_id, import_hash], map: "index_expenses_on_user_id_and_import_hash", where: raw("(import_hash IS NOT NULL)"))
   @@index([category_id], map: "index_expenses_on_category_id")
   @@index([user_id], map: "index_expenses_on_user_id")
+  @@index([user_id, date], map: "index_expenses_on_user_id_and_date")
 }
 
 model incomings {
@@ -54,6 +56,7 @@ model incomings {
   users        users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_20a58f32e0")
 
   @@index([user_id], map: "index_incomings_on_user_id")
+  @@index([user_id, date], map: "index_incomings_on_user_id_and_date")
 }
 
 model schema_migrations {

@@ -9,6 +9,7 @@ services:
       WEB_HOST: ${WEB_HOST}
       WEB_PORT: ${WEB_PORT}
       NEXT_PUBLIC_API_URL: http://${API_HOST}:${API_PORT}
+      DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:${DATABASE_INTERNAL_PORT:-5432}/${DATABASE_NAME}_development
     ports:
       - "${WEB_PORT}:3000"
     volumes:

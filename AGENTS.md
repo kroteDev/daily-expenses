@@ -16,7 +16,7 @@ Full-stack personal finance app rebuilt from a legacy Rails 4 monolith into a mo
 
 - Rails 8.1.4, Ruby 3.4-slim in Docker, ActiveRecord, Devise + JWT (`devise-jwt`)
 - Next.js 16.4.0, TypeScript, Tailwind CSS 4
-- Prisma in `web/prisma/` for type generation only — schema is introspected from Rails DB
+- Prisma 7 in `web/prisma/` for type generation only — schema is introspected from Rails DB; connection URL lives in `web/prisma.config.ts` (reads `DATABASE_URL`)
 - PostgreSQL 17
 
 ## Layout
@@ -77,7 +77,7 @@ docker compose exec api bundle exec rails db:prepare
 - Stage explicitly (`git add -- <paths>`); never `git add -A`/`.`/`-a`
 - Never stage `.env*` (except `.env.example`), `*.key`, `master.key`, secrets
 - Migrations: ask before running `db:migrate`; Rails owns all migrations
-- Prisma: run `prisma db pull` after Rails migrations, never hand-edit schema
+- Prisma: run `prisma db pull` after Rails migrations, never hand-edit schema. Requires `DATABASE_URL` in the environment (set for the `web` service in dev compose)
 
 ## Domain
 
