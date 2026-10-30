@@ -47,10 +47,10 @@ class Api::V1::ExpensesController < ApplicationController
   end
 
   def import_csv
+    return render json: { errors: ["Missing file parameter"] }, status: :unprocessable_entity if params[:file].blank?
+
     result = CsvImportService.new(current_user).call(params[:file])
-    render json: result, status: :ok
-  rescue ActionController::ParameterMissing
-    render json: { errors: ["Missing file parameter"] }, status: :unprocessable_entity
+    render json: { data: result }, status: :ok
   end
 
   private

@@ -70,15 +70,17 @@ class CsvImportServiceTest < ActiveSupport::TestCase
     assert_equal 1, @user.expenses.where(name: "Padaria").count
   end
 
-  test "imports the sample invoice with correct amounts" do
-    file = Rack::Test::UploadedFile.new(Rails.root.join("../references/csv/Fatura_2026-10-10.csv"), "text/csv")
+  test "imports the fixture invoice with correct amounts and counters" do
+    file = Rack::Test::UploadedFile.new(Rails.root.join("test/fixtures/files/fatura.csv"), "text/csv")
 
     result = CsvImportService.new(@user).call(file)
 
-    assert_empty result[:errors]
-    assert_operator result[:created], :>, 0
-    assert @user.expenses.exists?(name: "PG *ITALIANO FACIL ITF", price_cents: 3983)
-    assert @user.expenses.exists?(name: "PG *ITALIANO FACIL ITF", price_cents: 19800)
+    assert_equal 2, result[:created]
+    assert_equal 1, result[:duplicates]
+    assert_equal 3, result[:skipped]
+    assert_equal 1, result[:errors].size
+    assert @user.expenses.exists?(name: "PG *EXEMPLO A", price_cents: 3983)
+    assert @user.expenses.exists?(name: "PG *EXEMPLO B", price_cents: 19800)
   end
 
   private
