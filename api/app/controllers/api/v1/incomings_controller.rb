@@ -2,14 +2,16 @@
 
 class Api::V1::IncomingsController < ApplicationController
   include Ownable
+  include Pageable
 
   SORTABLE_FIELDS = %w[origin date amount_cents created_at updated_at].freeze
 
   def index
-    incomings = filter_by_date(owned_collection).order(sort_clause)
+    incomings, meta = paginate(filter_by_date(owned_collection).order(sort_clause))
 
     render json: {
-      data: incomings.map { |incoming| IncomingSerializer.new(incoming).serializable_hash[:data][:attributes] }
+      data: incomings.map { |incoming| IncomingSerializer.new(incoming).serializable_hash[:data][:attributes] },
+      meta: meta
     }, status: :ok
   end
 
@@ -73,8 +75,8 @@ class Api::V1::IncomingsController < ApplicationController
     direction = field.start_with?("-") ? :desc : :asc
     field = field.delete_prefix("-")
 
-    return { date: :desc, amount_cents: :asc, origin: :asc } unless SORTABLE_FIELDS.include?(field)
+    return { date: :desc, amount_cents: :asc, origin: :asc, id: :asc } unless SORTABLE_FIELDS.include?(field)
 
-    { field => direction }
+    { field => direction, id: :asc }
   end
 end

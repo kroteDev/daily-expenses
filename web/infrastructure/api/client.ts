@@ -1,4 +1,9 @@
-import { createBrowserApiClient, type ApiRequestFn } from "./httpClient";
+import {
+  createBrowserApiClient,
+  createBrowserEnvelopeApiClient,
+  type ApiEnvelopeRequestFn,
+  type ApiRequestFn,
+} from "./httpClient";
 import type { IAuthRepository } from "@/domain/repositories/IAuthRepository";
 import type { ICategoryRepository } from "@/domain/repositories/ICategoryRepository";
 import type { IExpenseRepository } from "@/domain/repositories/IExpenseRepository";
@@ -10,11 +15,17 @@ import { HttpIncomingRepository } from "@/infrastructure/api/repositories/HttpIn
 import { localStorageTokenStore, type TokenStore } from "@/infrastructure/auth/tokenStore";
 
 let browserClient: ApiRequestFn | null = null;
+let browserEnvelopeClient: ApiEnvelopeRequestFn | null = null;
 let tokenStore: TokenStore = localStorageTokenStore;
 
 export function getBrowserClient(): ApiRequestFn {
   if (!browserClient) browserClient = createBrowserApiClient();
   return browserClient;
+}
+
+export function getBrowserEnvelopeClient(): ApiEnvelopeRequestFn {
+  if (!browserEnvelopeClient) browserEnvelopeClient = createBrowserEnvelopeApiClient();
+  return browserEnvelopeClient;
 }
 
 export function getTokenStore(): TokenStore {
@@ -38,9 +49,9 @@ export function getCategoryRepository(): ICategoryRepository {
 }
 
 export function getExpenseRepository(): IExpenseRepository {
-  return new HttpExpenseRepository(getBrowserClient());
+  return new HttpExpenseRepository(getBrowserEnvelopeClient());
 }
 
 export function getIncomingRepository(): IIncomingRepository {
-  return new HttpIncomingRepository(getBrowserClient());
+  return new HttpIncomingRepository(getBrowserEnvelopeClient());
 }

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_200603) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_30_130603) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -33,6 +33,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_200603) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_expenses_on_category_id"
+    t.index ["user_id", "date"], name: "index_expenses_on_user_id_and_date"
     t.index ["user_id", "import_hash"], name: "index_expenses_on_user_id_and_import_hash", unique: true, where: "(import_hash IS NOT NULL)"
     t.index ["user_id"], name: "index_expenses_on_user_id"
   end
@@ -44,6 +45,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_200603) do
     t.string "origin", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["user_id", "date"], name: "index_incomings_on_user_id_and_date"
     t.index ["user_id"], name: "index_incomings_on_user_id"
   end
 

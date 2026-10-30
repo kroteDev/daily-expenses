@@ -1,4 +1,5 @@
 import type { Incoming } from "@/domain/entities/Incoming";
+import type { PaginatedResult } from "@/domain/entities/Pagination";
 import type {
   IIncomingRepository,
   IncomingInput,
@@ -11,7 +12,7 @@ export async function listIncomings(
   repo: IIncomingRepository,
   store: TokenStore,
   options?: PeriodListOptions,
-): Promise<Incoming[]> {
+): Promise<PaginatedResult<Incoming>> {
   return repo.list(requireToken(store), options);
 }
 

@@ -1,5 +1,6 @@
 import type { CsvImportResult } from "@/domain/entities/CsvImportResult";
 import type { Expense } from "@/domain/entities/Expense";
+import type { PaginatedResult } from "@/domain/entities/Pagination";
 import type {
   ExpenseInput,
   IExpenseRepository,
@@ -12,7 +13,7 @@ export async function listExpenses(
   repo: IExpenseRepository,
   store: TokenStore,
   options?: PeriodListOptions,
-): Promise<Expense[]> {
+): Promise<PaginatedResult<Expense>> {
   return repo.list(requireToken(store), options);
 }
 

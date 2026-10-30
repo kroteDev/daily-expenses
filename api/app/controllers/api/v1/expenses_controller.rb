@@ -2,14 +2,16 @@
 
 class Api::V1::ExpensesController < ApplicationController
   include Ownable
+  include Pageable
 
   SORTABLE_FIELDS = %w[name date price_cents created_at updated_at].freeze
 
   def index
-    expenses = filter_by_date(owned_collection).order(sort_clause)
+    expenses, meta = paginate(filter_by_date(owned_collection).order(sort_clause))
 
     render json: {
-      data: expenses.map { |expense| ExpenseSerializer.new(expense).serializable_hash[:data][:attributes] }
+      data: expenses.map { |expense| ExpenseSerializer.new(expense).serializable_hash[:data][:attributes] },
+      meta: meta
     }, status: :ok
   end
 
@@ -80,8 +82,8 @@ class Api::V1::ExpensesController < ApplicationController
     direction = field.start_with?("-") ? :desc : :asc
     field = field.delete_prefix("-")
 
-    return { date: :desc, price_cents: :asc, name: :asc } unless SORTABLE_FIELDS.include?(field)
+    return { date: :desc, price_cents: :asc, name: :asc, id: :asc } unless SORTABLE_FIELDS.include?(field)
 
-    { field => direction }
+    { field => direction, id: :asc }
   end
 end

@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Pagination } from "@/components/Pagination";
 import { PeriodFilter } from "@/components/PeriodFilter";
 import type { Category } from "@/domain/entities/Category";
 import type { Expense } from "@/domain/entities/Expense";
+import type { PaginationMeta } from "@/domain/entities/Pagination";
 import type { Period } from "@/domain/repositories/ListOptions";
 import { formatCents } from "@/lib/money";
 import { formatIsoDate } from "@/lib/date";
@@ -14,7 +16,9 @@ import { deleteExpense, listExpenses } from "@/usecases/expense";
 
 export default function ExpensesPage() {
   const [period, setPeriod] = useState<Period | undefined>(undefined);
+  const [page, setPage] = useState(1);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [categoryNames, setCategoryNames] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [reloadCount, setReloadCount] = useState(0);
@@ -25,12 +29,14 @@ export default function ExpensesPage() {
 
     const load = async () => {
       try {
-        const [expenseList, categories] = await Promise.all([
-          listExpenses(getExpenseRepository(), getTokenStore(), { period }),
+        const [result, categories] = await Promise.all([
+          listExpenses(getExpenseRepository(), getTokenStore(), { period, page }),
           listCategories(getCategoryRepository(), getTokenStore()),
         ]);
         if (ignore) return;
-        setExpenses(expenseList);
+        setExpenses(result.items);
+        setMeta(result.meta);
+        setPage(result.meta.page);
         setCategoryNames(toNameMap(categories));
         setError(null);
       } catch (err) {
@@ -44,11 +50,17 @@ export default function ExpensesPage() {
     return () => {
       ignore = true;
     };
-  }, [period, reloadCount]);
+  }, [period, page, reloadCount]);
 
   const handlePeriodChange = (value: Period | undefined) => {
     setIsLoading(true);
+    setPage(1);
     setPeriod(value);
+  };
+
+  const handlePageChange = (value: number) => {
+    setIsLoading(true);
+    setPage(value);
   };
 
   const handleDelete = async (expense: Expense) => {
@@ -56,7 +68,11 @@ export default function ExpensesPage() {
     try {
       await deleteExpense(getExpenseRepository(), getTokenStore(), expense.id);
       setIsLoading(true);
-      setReloadCount((count) => count + 1);
+      if (expenses.length === 1 && page > 1) {
+        setPage(page - 1);
+      } else {
+        setReloadCount((count) => count + 1);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha ao excluir despesa");
     }
@@ -87,7 +103,7 @@ export default function ExpensesPage() {
 
         {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
-        <div className="rounded-xl bg-white p-6 shadow-sm">
+        <div className="rounded-xl bg-white p-6 shadow-sm space-y-4">
           {isLoading ? (
             <p>Carregando...</p>
           ) : expenses.length === 0 ? (
@@ -118,6 +134,8 @@ export default function ExpensesPage() {
               ))}
             </ul>
           )}
+
+          {meta && !isLoading && <Pagination meta={meta} onPageChange={handlePageChange} />}
         </div>
       </div>
     </main>

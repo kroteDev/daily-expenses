@@ -15,7 +15,7 @@ function makeStore(token: string | null = "jwt"): TokenStore {
 
 function makeRepo(): IExpenseRepository {
   return {
-    list: vi.fn(async () => []),
+    list: vi.fn(async () => ({ items: [], meta: { page: 1, perPage: 50, total: 0, totalPages: 0 } })),
     get: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),

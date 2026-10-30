@@ -36,6 +36,7 @@ const incoming: Incoming = {
   createdAt: date,
   updatedAt: date,
 };
+const pageMeta = { page: 1, perPage: 50, total: 1, totalPages: 1 };
 
 function makeStore(token: string | null = "jwt"): TokenStore {
   return {
@@ -57,7 +58,7 @@ function makeCategoryRepo(): ICategoryRepository {
 
 function makeExpenseRepo(): IExpenseRepository {
   return {
-    list: vi.fn(async () => [expense]),
+    list: vi.fn(async () => ({ items: [expense], meta: pageMeta })),
     get: vi.fn(async () => expense),
     create: vi.fn(async () => expense),
     update: vi.fn(async () => expense),
@@ -68,7 +69,7 @@ function makeExpenseRepo(): IExpenseRepository {
 
 function makeIncomingRepo(): IIncomingRepository {
   return {
-    list: vi.fn(async () => [incoming]),
+    list: vi.fn(async () => ({ items: [incoming], meta: pageMeta })),
     get: vi.fn(async () => incoming),
     create: vi.fn(async () => incoming),
     update: vi.fn(async () => incoming),
@@ -105,9 +106,10 @@ describe("category usecases", () => {
 describe("expense usecases", () => {
   it("lists expenses with a period filter", async () => {
     const repo = makeExpenseRepo();
-    const result = await listExpenses(repo, makeStore(), { period: "month" });
-    expect(result).toEqual([expense]);
-    expect(repo.list).toHaveBeenCalledWith("jwt", { period: "month" });
+    const result = await listExpenses(repo, makeStore(), { period: "month", page: 2 });
+    expect(result.items).toEqual([expense]);
+    expect(result.meta).toEqual(pageMeta);
+    expect(repo.list).toHaveBeenCalledWith("jwt", { period: "month", page: 2 });
   });
 
   it("creates and deletes using the stored token", async () => {
@@ -131,7 +133,7 @@ describe("incoming usecases", () => {
   it("lists incomings with a period filter", async () => {
     const repo = makeIncomingRepo();
     const result = await listIncomings(repo, makeStore(), { period: "today" });
-    expect(result).toEqual([incoming]);
+    expect(result.items).toEqual([incoming]);
     expect(repo.list).toHaveBeenCalledWith("jwt", { period: "today" });
   });
 

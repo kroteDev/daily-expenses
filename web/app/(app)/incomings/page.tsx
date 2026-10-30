@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Pagination } from "@/components/Pagination";
 import { PeriodFilter } from "@/components/PeriodFilter";
 import type { Incoming } from "@/domain/entities/Incoming";
+import type { PaginationMeta } from "@/domain/entities/Pagination";
 import type { Period } from "@/domain/repositories/ListOptions";
 import { formatCents } from "@/lib/money";
 import { formatIsoDate } from "@/lib/date";
@@ -12,7 +14,9 @@ import { deleteIncoming, listIncomings } from "@/usecases/incoming";
 
 export default function IncomingsPage() {
   const [period, setPeriod] = useState<Period | undefined>(undefined);
+  const [page, setPage] = useState(1);
   const [incomings, setIncomings] = useState<Incoming[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [reloadCount, setReloadCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -22,9 +26,11 @@ export default function IncomingsPage() {
 
     const load = async () => {
       try {
-        const result = await listIncomings(getIncomingRepository(), getTokenStore(), { period });
+        const result = await listIncomings(getIncomingRepository(), getTokenStore(), { period, page });
         if (ignore) return;
-        setIncomings(result);
+        setIncomings(result.items);
+        setMeta(result.meta);
+        setPage(result.meta.page);
         setError(null);
       } catch (err) {
         if (!ignore) setError(err instanceof Error ? err.message : "Falha ao carregar entradas");
@@ -37,11 +43,17 @@ export default function IncomingsPage() {
     return () => {
       ignore = true;
     };
-  }, [period, reloadCount]);
+  }, [period, page, reloadCount]);
 
   const handlePeriodChange = (value: Period | undefined) => {
     setIsLoading(true);
+    setPage(1);
     setPeriod(value);
+  };
+
+  const handlePageChange = (value: number) => {
+    setIsLoading(true);
+    setPage(value);
   };
 
   const handleDelete = async (incoming: Incoming) => {
@@ -49,7 +61,11 @@ export default function IncomingsPage() {
     try {
       await deleteIncoming(getIncomingRepository(), getTokenStore(), incoming.id);
       setIsLoading(true);
-      setReloadCount((count) => count + 1);
+      if (incomings.length === 1 && page > 1) {
+        setPage(page - 1);
+      } else {
+        setReloadCount((count) => count + 1);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha ao excluir entrada");
     }
@@ -72,7 +88,7 @@ export default function IncomingsPage() {
 
         {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
-        <div className="rounded-xl bg-white p-6 shadow-sm">
+        <div className="rounded-xl bg-white p-6 shadow-sm space-y-4">
           {isLoading ? (
             <p>Carregando...</p>
           ) : incomings.length === 0 ? (
@@ -101,6 +117,8 @@ export default function IncomingsPage() {
               ))}
             </ul>
           )}
+
+          {meta && !isLoading && <Pagination meta={meta} onPageChange={handlePageChange} />}
         </div>
       </div>
     </main>
