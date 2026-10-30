@@ -1,0 +1,98 @@
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  api-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: daily_expenses_test
+          POSTGRES_USER: daily_expenses
+          POSTGRES_PASSWORD: ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U daily_expenses"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      RAILS_ENV: test
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5432
+      DATABASE_NAME: daily_expenses
+      DATABASE_USER: daily_expenses
+      DATABASE_PASSWORD: ci_password
+      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+          working-directory: api
+      - run: bin/rails db:prepare
+      - run: bin/rails test
+
+  web-test:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+      NEXT_PUBLIC_API_URL: https://api.expenses.krotedev.com.br
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --legacy-peer-deps
+      - run: npm run test:run
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm run build
+
+  deploy:
+    needs: [api-test, web-test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            set -e
+            cd /var/www/projects/daily-expenses
+            git fetch origin main
+            git reset --hard origin/main
+            docker compose -f docker-compose.prod.yml build
+            docker compose -f docker-compose.prod.yml run --rm api bin/rails db:prepare
+            docker compose -f docker-compose.prod.yml up -d
+            docker image prune -f
+
+      - name: Smoke test
+        run: |
+          curl -fsS --retry 5 --retry-delay 5 --retry-all-errors https://api.expenses.krotedev.com.br/up
+          curl -fsS -o /dev/null --retry 5 --retry-delay 5 --retry-all-errors https://expenses.krotedev.com.br/signin

@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: daily_expenses_postgresql
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - daily_expenses_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.prod
+    container_name: daily_expenses_api
+    env_file: .env
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: ${DATABASE_INTERNAL_PORT:-5432}
+    ports:
+      - "127.0.0.1:${API_PORT}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.prod
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    container_name: daily_expenses_web
+    env_file: .env
+    ports:
+      - "127.0.0.1:${WEB_PORT}:3000"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  daily_expenses_postgres_data:
