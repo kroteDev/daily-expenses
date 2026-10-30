@@ -104,6 +104,84 @@ class Api::V1::ExpensesControllerTest < ActionDispatch::IntegrationTest
     assert_equal month.sum(:price_cents), data["total_cents"]
   end
 
+  test "shows an owned expense" do
+    get "/api/v1/expenses/#{expenses(:one).id}", headers: { "Authorization" => @token }
+
+    assert_response :ok
+    assert_equal expenses(:one).id, JSON.parse(response.body)["data"]["id"]
+  end
+
+  test "does not show another user's expense" do
+    get "/api/v1/expenses/#{expenses(:two).id}", headers: { "Authorization" => @token }
+
+    assert_response :not_found
+  end
+
+  test "creates an expense for the owner" do
+    params = { expense: { name: "Cinema", date: "2026-10-14", price_cents: 4500, category_id: categories(:one).id } }
+
+    assert_difference "users(:one).expenses.count", 1 do
+      post "/api/v1/expenses", params: params, headers: { "Authorization" => @token }, as: :json
+    end
+
+    assert_response :created
+    assert_equal 4500, JSON.parse(response.body)["data"]["price_cents"]
+  end
+
+  test "ignores user_id sent in the body and keeps the expense with the token owner" do
+    params = {
+      expense: { name: "Cinema", date: "2026-10-14", price_cents: 4500, category_id: categories(:one).id,
+                 user_id: users(:two).id }
+    }
+
+    post "/api/v1/expenses", params: params, headers: { "Authorization" => @token }, as: :json
+
+    assert_response :created
+    assert_equal users(:one).id, Expense.find(JSON.parse(response.body)["data"]["id"]).user_id
+  end
+
+  test "rejects an expense with a negative price" do
+    params = { expense: { name: "Cinema", date: "2026-10-14", price_cents: -1, category_id: categories(:one).id } }
+
+    post "/api/v1/expenses", params: params, headers: { "Authorization" => @token }, as: :json
+
+    assert_response :unprocessable_entity
+    assert JSON.parse(response.body)["errors"].present?
+  end
+
+  test "updates an owned expense" do
+    params = { expense: { name: "Mercado Novo" } }
+
+    patch "/api/v1/expenses/#{expenses(:one).id}", params: params, headers: { "Authorization" => @token }, as: :json
+
+    assert_response :ok
+    assert_equal "Mercado Novo", expenses(:one).reload.name
+  end
+
+  test "does not update another user's expense" do
+    params = { expense: { name: "Invadido" } }
+
+    patch "/api/v1/expenses/#{expenses(:two).id}", params: params, headers: { "Authorization" => @token }, as: :json
+
+    assert_response :not_found
+    assert_not_equal "Invadido", expenses(:two).reload.name
+  end
+
+  test "deletes an owned expense" do
+    assert_difference "users(:one).expenses.count", -1 do
+      delete "/api/v1/expenses/#{expenses(:one).id}", headers: { "Authorization" => @token }
+    end
+
+    assert_response :no_content
+  end
+
+  test "does not delete another user's expense" do
+    delete "/api/v1/expenses/#{expenses(:two).id}", headers: { "Authorization" => @token }
+
+    assert_response :not_found
+    assert Expense.exists?(expenses(:two).id)
+  end
+
   private
 
   def create_expenses(count)
