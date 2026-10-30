@@ -1,3 +1,4 @@
+import type { CsvImportResult } from "@/domain/entities/CsvImportResult";
 import type { Expense } from "@/domain/entities/Expense";
 import type { PeriodListOptions } from "@/domain/repositories/ListOptions";
 
@@ -14,4 +15,5 @@ export interface IExpenseRepository {
   create(token: string, input: ExpenseInput): Promise<Expense>;
   update(token: string, id: string, input: ExpenseInput): Promise<Expense>;
   delete(token: string, id: string): Promise<void>;
+  importCsv(token: string, file: File): Promise<CsvImportResult>;
 }

@@ -1,12 +1,15 @@
 import type { ApiRequestFn } from "@/infrastructure/api/httpClient";
 import { buildQuery } from "@/infrastructure/api/httpClient";
+import type { RawCsvImportResultDto } from "@/domain/api/RawCsvImportResultDto";
 import type { RawExpenseDto } from "@/domain/api/RawExpenseDto";
+import type { CsvImportResult } from "@/domain/entities/CsvImportResult";
 import type { Expense } from "@/domain/entities/Expense";
 import type { PeriodListOptions } from "@/domain/repositories/ListOptions";
 import type {
   ExpenseInput,
   IExpenseRepository,
 } from "@/domain/repositories/IExpenseRepository";
+import { rawToCsvImportResult } from "@/infrastructure/api/mappers/csvImportMapper";
 import { rawToExpense, toRawExpense } from "@/infrastructure/api/mappers/expenseMapper";
 
 export class HttpExpenseRepository implements IExpenseRepository {
@@ -62,5 +65,17 @@ export class HttpExpenseRepository implements IExpenseRepository {
       path: `/api/v1/expenses/${id}`,
       token,
     });
+  }
+
+  async importCsv(token: string, file: File): Promise<CsvImportResult> {
+    const body = new FormData();
+    body.append("file", file);
+    const raw = await this.request<RawCsvImportResultDto>({
+      method: "POST",
+      path: "/api/v1/expenses/import_csv",
+      token,
+      body,
+    });
+    return rawToCsvImportResult(raw);
   }
 }

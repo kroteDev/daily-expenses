@@ -16,7 +16,7 @@ export interface ApiRequestOptions {
   method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
   path: string;
   token?: string;
-  body?: unknown;
+  body?: unknown | FormData;
   onResponse?: (res: Response) => void;
 }
 
@@ -39,16 +39,15 @@ export function buildQuery(params: Record<string, string | undefined>): string {
 
 export function createApiClient({ baseUrl }: { baseUrl: string }): ApiRequestFn {
   return async function apiRequest<T>({ method, path, token, body, onResponse }: ApiRequestOptions) {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
+    const isFormData = body instanceof FormData;
+    const headers: Record<string, string> = { Accept: "application/json" };
+    if (!isFormData) headers["Content-Type"] = "application/json";
     if (token) headers.Authorization = `Bearer ${token}`;
 
     const res = await fetch(`${baseUrl}${path}`, {
       method,
       headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
     });
     onResponse?.(res);
 

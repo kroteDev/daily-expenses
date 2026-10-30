@@ -1,3 +1,4 @@
+import type { CsvImportResult } from "@/domain/entities/CsvImportResult";
 import type { Expense } from "@/domain/entities/Expense";
 import type {
   ExpenseInput,
@@ -38,4 +39,12 @@ export async function updateExpense(
 
 export async function deleteExpense(repo: IExpenseRepository, store: TokenStore, id: string): Promise<void> {
   return repo.delete(requireToken(store), id);
+}
+
+export async function importExpensesCsv(
+  repo: IExpenseRepository,
+  store: TokenStore,
+  file: File,
+): Promise<CsvImportResult> {
+  return repo.importCsv(requireToken(store), file);
 }

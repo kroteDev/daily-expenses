@@ -62,6 +62,7 @@ function makeExpenseRepo(): IExpenseRepository {
     create: vi.fn(async () => expense),
     update: vi.fn(async () => expense),
     delete: vi.fn(async () => {}),
+    importCsv: vi.fn(async () => ({ created: 1, skipped: 0, duplicates: 0, errors: [] })),
   };
 }
 

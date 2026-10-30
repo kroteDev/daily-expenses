@@ -67,12 +67,20 @@ export default function ExpensesPage() {
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Despesas</h1>
-          <Link
-            href="/expenses/new"
-            className="rounded-full bg-zinc-900 px-6 py-2 text-white hover:bg-zinc-800"
-          >
-            Nova despesa
-          </Link>
+          <div className="flex gap-3">
+            <Link
+              href="/expenses/import"
+              className="rounded-full border border-zinc-900 px-6 py-2 hover:bg-zinc-100"
+            >
+              Importar CSV
+            </Link>
+            <Link
+              href="/expenses/new"
+              className="rounded-full bg-zinc-900 px-6 py-2 text-white hover:bg-zinc-800"
+            >
+              Nova despesa
+            </Link>
+          </div>
         </div>
 
         <PeriodFilter value={period} onChange={handlePeriodChange} />
